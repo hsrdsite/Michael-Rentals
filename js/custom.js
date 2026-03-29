@@ -121,35 +121,119 @@
     });  
 
 
+    var applicationWizard = {
+        started: false,
+        currentStep: 0,
+        totalSteps: 0
+    };
+
     // MODERN FORM PROGRESS BAR
     function updateFormProgress() {
-        var form = $('#application-form')[0];
-        if (!form) return;
-        
-        var inputs = form.querySelectorAll('input, textarea');
-        var filledCount = 0;
-        var requiredCount = 0;
-        
-        inputs.forEach(function(input) {
-            if (input.hasAttribute('required')) {
-                requiredCount++;
-                if (input.value.trim() !== '') {
-                    filledCount++;
-                }
-            }
-        });
-        
-        var progress = requiredCount > 0 ? (filledCount / requiredCount) * 100 : 0;
+        if (!applicationWizard.started || applicationWizard.totalSteps === 0) {
+            $('#progressBar').css('width', '0%');
+            return;
+        }
+
+        var progress = ((applicationWizard.currentStep + 1) / applicationWizard.totalSteps) * 100;
         $('#progressBar').css('width', progress + '%');
     }
 
-    // Update progress on input change
-    $('#application-form').on('input change', 'input, textarea', function() {
-        updateFormProgress();
-    });
-
     // Initialize progress on page load
     updateFormProgress();
+
+    function showApplicationStep(stepIndex) {
+        var sections = $('.form-section');
+
+        if (!sections.length) {
+            return;
+        }
+
+        applicationWizard.currentStep = Math.max(0, Math.min(stepIndex, applicationWizard.totalSteps - 1));
+        sections.removeClass('active-step').hide();
+        $(sections[applicationWizard.currentStep]).addClass('active-step').show();
+        updateFormProgress();
+
+        var applicationSection = document.getElementById('application');
+        if (applicationSection) {
+            applicationSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    function validateStep(section) {
+        var isValid = true;
+        var requiredFields = section.find('[required]').not('input[type="radio"], input[type="checkbox"]');
+
+        section.find('.error-message').removeClass('show').text('');
+        section.find('[aria-invalid="true"]').removeAttr('aria-invalid');
+
+        requiredFields.each(function() {
+            var field = $(this);
+            if (!field.val().trim()) {
+                showError(field, 'This field is required');
+                isValid = false;
+                return;
+            }
+
+            validateField(field);
+            if (field.attr('aria-invalid') === 'true') {
+                isValid = false;
+            }
+        });
+
+        var radioGroups = {};
+        section.find('input[type="radio"][required]').each(function() {
+            radioGroups[$(this).attr('name')] = true;
+        });
+
+        Object.keys(radioGroups).forEach(function(groupName) {
+            var checkedCount = section.find('input[name="' + groupName + '"]:checked').length;
+            if (checkedCount === 0) {
+                var firstRadio = section.find('input[name="' + groupName + '"]').first();
+                showError(firstRadio, 'Please select an option');
+                isValid = false;
+            }
+        });
+
+        return isValid;
+    }
+
+    function initApplicationWizard() {
+        var startScreen = $('#application-start-screen');
+        var startButton = $('#start-application-btn');
+        var form = $('#application-form');
+        var progress = $('#application-progress');
+        var sections = $('.form-section');
+
+        if (!startScreen.length || !startButton.length || !form.length || !sections.length) {
+            return;
+        }
+
+        applicationWizard.totalSteps = sections.length;
+        sections.removeClass('active-step').hide();
+
+        startButton.on('click', function() {
+            applicationWizard.started = true;
+            startScreen.fadeOut(200, function() {
+                $(this).addClass('is-hidden');
+            });
+            progress.removeClass('is-hidden');
+            form.removeClass('is-hidden');
+            showApplicationStep(0);
+        });
+
+        form.on('click', '.btn-next-step', function() {
+            var currentSection = $(sections[applicationWizard.currentStep]);
+            if (!validateStep(currentSection)) {
+                return;
+            }
+
+            showApplicationStep(applicationWizard.currentStep + 1);
+        });
+
+        form.on('click', '.btn-prev-step', function() {
+            showApplicationStep(applicationWizard.currentStep - 1);
+        });
+    }
 
 
     // FORM SUBMISSION VIA SERVER API
@@ -305,8 +389,17 @@
 
     // Handle "Submit Another Application" button
     $('.btn-new-application').on('click', function() {
+        var sections = $('.form-section');
+
+        applicationWizard.started = false;
+        applicationWizard.currentStep = 0;
+
         $('#thank-you-message').fadeOut(300, function() {
-            $('#application-form').fadeIn(300);
+            $('#application-form').addClass('is-hidden').show();
+            $('#application-progress').addClass('is-hidden');
+            $('#application-start-screen').removeClass('is-hidden').hide().fadeIn(300);
+            sections.removeClass('active-step').hide();
+            updateFormProgress();
         });
     });
 
@@ -621,6 +714,7 @@
 
     // Initialize all enhancements
     $(document).ready(function() {
+        initApplicationWizard();
         initMobileAccessibility();
         initFormValidation();
         initPerformanceOptimizations();

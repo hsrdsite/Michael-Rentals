@@ -246,6 +246,55 @@ http://www.tooplate.com/view/2106-soft-landing
   }
 
   /* Modern Rental Application Form */
+  .is-hidden {
+    display: none !important;
+  }
+
+  .application-start-screen {
+    min-height: 420px;
+    border-radius: 16px;
+    overflow: hidden;
+    background-image: linear-gradient(135deg, rgba(12, 24, 48, 0.72), rgba(20, 40, 80, 0.6)), url('../images/mrentlogo.jpg');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+
+  .application-start-overlay {
+    text-align: center;
+    color: #ffffff;
+    padding: 40px 24px;
+    max-width: 720px;
+  }
+
+  .application-start-overlay h1 {
+    font-size: 42px;
+    letter-spacing: 0.5px;
+    margin: 0 0 24px;
+    text-transform: none;
+    color: #ffffff;
+  }
+
+  .start-application-btn {
+    border: 0;
+    border-radius: 999px;
+    padding: 13px 34px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #132646;
+    background: #ffffff;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .start-application-btn:hover,
+  .start-application-btn:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+  }
+
   .form-card {
     background: var(--card-bg);
     border-radius: 12px;
@@ -279,6 +328,11 @@ http://www.tooplate.com/view/2106-soft-landing
     margin-bottom: 45px;
     padding-bottom: 35px;
     border-bottom: 1px solid #e9ecef;
+    display: none;
+  }
+
+  .form-section.active-step {
+    display: block;
   }
 
   .form-section:last-of-type {
@@ -423,11 +477,40 @@ http://www.tooplate.com/view/2106-soft-landing
     box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
   }
 
-  .form-actions {
-    margin-top: 40px;
-    text-align: center;
-    padding-top: 30px;
+  .step-navigation {
+    margin-top: 26px;
+    padding-top: 18px;
     border-top: 1px solid #e9ecef;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .step-btn {
+    border: 0;
+    border-radius: 999px;
+    padding: 11px 28px;
+    min-width: 130px;
+    font-size: 14px;
+    font-weight: 700;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .step-prev {
+    background: #e9eef7;
+    color: #21395f;
+  }
+
+  .step-next {
+    background: #29ca8e;
+    color: #ffffff;
+  }
+
+  .step-btn:hover,
+  .step-btn:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
   }
 
   /* Thank You Message */
@@ -542,6 +625,15 @@ http://www.tooplate.com/view/2106-soft-landing
       padding: 30px;
     }
 
+    .application-start-screen {
+      min-height: 320px;
+    }
+
+    .application-start-overlay h1 {
+      font-size: 30px;
+      line-height: 1.2;
+    }
+
     .form-row {
       flex-direction: column;
       gap: 0;
@@ -554,6 +646,16 @@ http://www.tooplate.com/view/2106-soft-landing
     .btn-submit {
       width: 100%;
       padding: 14px 30px;
+    }
+
+    .step-navigation {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .step-btn,
+    .btn-submit {
+      width: 100%;
     }
 
     .radio-group {

@@ -213,11 +213,18 @@
 
                     <div class="col-md-offset-1 col-md-10 col-sm-12">
                          <div class="form-card">
-                              <div class="form-progress">
+                              <div class="application-start-screen" id="application-start-screen">
+                                   <div class="application-start-overlay">
+                                        <h1>Michael Rents Rental Application</h1>
+                                        <button type="button" class="start-application-btn" id="start-application-btn">Start</button>
+                                   </div>
+                              </div>
+
+                              <div class="form-progress is-hidden" id="application-progress">
                                    <div class="progress-bar" id="progressBar"></div>
                               </div>
 
-                              <form id="application-form" role="form" action="" method="post" class="modern-form" novalidate>
+                              <form id="application-form" role="form" action="" method="post" class="modern-form is-hidden" novalidate>
                                    <!-- Section 1: Personal Information -->
                                    <div class="form-section" id="section-1" role="group" aria-labelledby="personal-info-heading">
                                         <h3 class="section-heading" id="personal-info-heading">
@@ -263,6 +270,10 @@
                                              <label for="dob">Date of Birth <span class="required" aria-label="required">*</span></label>
                                              <input type="date" class="form-control" id="dob" name="dob" required="" aria-describedby="dob-error">
                                              <div id="dob-error" class="error-message" role="alert" aria-live="polite"></div>
+                                        </div>
+
+                                        <div class="step-navigation">
+                                             <button type="button" class="step-btn step-next btn-next-step">Next</button>
                                         </div>
                                    </div>
 
@@ -321,6 +332,11 @@
                                              <label for="movein_funds">How much do you have at hand for move-in? <span class="required">*</span></label>
                                              <input type="number" class="form-control" id="movein_funds" name="movein_funds" placeholder="$0" required="">
                                         </div>
+
+                                        <div class="step-navigation">
+                                             <button type="button" class="step-btn step-prev btn-prev-step">Previous</button>
+                                             <button type="button" class="step-btn step-next btn-next-step">Next</button>
+                                        </div>
                                    </div>
 
                                    <!-- Section 3: Employment & Income -->
@@ -357,6 +373,11 @@
                                                        <input type="number" class="form-control" id="security" name="security" placeholder="$2,500" required="">
                                                   </div>
                                              </div>
+                                        </div>
+
+                                        <div class="step-navigation">
+                                             <button type="button" class="step-btn step-prev btn-prev-step">Previous</button>
+                                             <button type="button" class="step-btn step-next btn-next-step">Next</button>
                                         </div>
                                    </div>
 
@@ -413,6 +434,11 @@
                                              <label for="explanation">If you answered yes to any questions above, please explain:</label>
                                              <textarea class="form-control" id="explanation" name="explanation" placeholder="Please provide details..." rows="5"></textarea>
                                         </div>
+
+                                        <div class="step-navigation">
+                                             <button type="button" class="step-btn step-prev btn-prev-step">Previous</button>
+                                             <button type="button" class="step-btn step-next btn-next-step">Next</button>
+                                        </div>
                                    </div>
 
                                    <!-- Section 5: Payment Method -->
@@ -447,11 +473,12 @@
                                                   </label>
                                              </div>
                                         </div>
-                                   </div>
 
-                                   <!-- Submit Button -->
-                                   <div class="form-actions">
-                                        <button type="submit" class="btn-submit">Submit Application</button>
+                                        <div class="step-navigation">
+                                             <button type="button" class="step-btn step-prev btn-prev-step">Previous</button>
+                                             <button type="submit" class="btn-submit">Submit Application</button>
+                                        </div>
+
                                         <p class="form-note">By submitting this form, you agree to our rental policies and terms.</p>
                                    </div>
                               </form>

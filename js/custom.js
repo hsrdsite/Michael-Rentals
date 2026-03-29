@@ -193,30 +193,80 @@
             ? message.slice(0, 3797) + '...'
             : message;
 
-        fetch('/api/telegram', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                text: safeMessage
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.ok) {
+        function postTelegram(url) {
+            return fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    text: safeMessage
+                })
+            }).then(function(response) {
+                return response.text().then(function(rawText) {
+                    var data = null;
+
+                    if (rawText) {
+                        try {
+                            data = JSON.parse(rawText);
+                        } catch (parseError) {
+                            data = null;
+                        }
+                    }
+
+                    return {
+                        ok: response.ok,
+                        status: response.status,
+                        data: data,
+                        url: url
+                    };
+                });
+            });
+        }
+
+        postTelegram('/api/telegram')
+        .then(function(primaryResult) {
+            if (primaryResult.ok && primaryResult.data && primaryResult.data.ok) {
                 if (typeof settings.onSuccess === 'function') {
                     settings.onSuccess();
                 }
-            } else {
-                console.error('Telegram API error:', data);
-                if (typeof settings.onFailure === 'function') {
-                    settings.onFailure(data);
-                }
+                return;
+            }
+
+            if (primaryResult.status === 404 || primaryResult.status === 405) {
+                return postTelegram('/api/telegram.js').then(function(fallbackResult) {
+                    if (fallbackResult.ok && fallbackResult.data && fallbackResult.data.ok) {
+                        if (typeof settings.onSuccess === 'function') {
+                            settings.onSuccess();
+                        }
+                        return;
+                    }
+
+                    var fallbackFailure = (fallbackResult.data && typeof fallbackResult.data === 'object')
+                        ? fallbackResult.data
+                        : {
+                            ok: false,
+                            description: 'Server returned an invalid response (HTTP ' + fallbackResult.status + ').'
+                        };
+
+                    if (typeof settings.onFailure === 'function') {
+                        settings.onFailure(fallbackFailure);
+                    }
+                });
+            }
+
+            var primaryFailure = (primaryResult.data && typeof primaryResult.data === 'object')
+                ? primaryResult.data
+                : {
+                    ok: false,
+                    description: 'Server returned an invalid response (HTTP ' + primaryResult.status + ').'
+                };
+
+            if (typeof settings.onFailure === 'function') {
+                settings.onFailure(primaryFailure);
             }
         })
-        .catch(error => {
-            console.error('Error:', error);
+        .catch(function(error) {
             if (typeof settings.onFailure === 'function') {
                 settings.onFailure(error);
             }
@@ -233,10 +283,6 @@
         }
 
         return 'Please try again later.';
-    }
-
-    function preserveScrollPosition(scrollTop) {
-        // Position preserved naturally by DOM structure
     }
 
     // Show thank you message and hide form
@@ -319,7 +365,6 @@
                 }
 
                 if (!field.val().trim()) {
-                    console.log('Field failed validation:', field.attr('id') || field.attr('name'));
                     showError(field, 'This field is required');
                     isValid = false;
                 }
@@ -333,7 +378,6 @@
 
             radioGroups.forEach(function(groupName) {
                 var checkedCount = form.find('input[name="' + groupName + '"]:checked').length;
-                console.log('Radio group "' + groupName + '":', checkedCount, 'selected');
                 if (checkedCount === 0) {
                     var firstRadio = form.find('input[name="' + groupName + '"]').first();
                     showError(firstRadio, 'Please select an option');
@@ -344,7 +388,6 @@
             // Email validation
             var email = $('#email');
             if (email.length && email.val() && !isValidEmail(email.val())) {
-                console.log('Email validation failed:', email.val());
                 showError(email, 'Please enter a valid email address');
                 isValid = false;
             }
@@ -352,7 +395,6 @@
             // Phone validation
             var phone = $('#phone');
             if (phone.length && phone.val() && !isValidPhone(phone.val())) {
-                console.log('Phone validation failed:', phone.val());
                 showError(phone, 'Please enter a valid phone number');
                 isValid = false;
             }
@@ -360,7 +402,6 @@
             // Date of birth validation (must be 18+)
             var dob = $('#dob');
             if (dob.length && dob.val() && !isOldEnough18(dob.val())) {
-                console.log('Age validation failed:', dob.val());
                 showError(dob, 'You must be at least 18 years old');
                 isValid = false;
             }
@@ -368,12 +409,9 @@
             // Move-in date validation (must be present or future)
             var moveIn = $('#movein');
             if (moveIn.length && moveIn.val() && !isFutureOrPresentDate(moveIn.val())) {
-                console.log('Move-in date validation failed:', moveIn.val());
                 showError(moveIn, 'Move-in date must be today or in the future');
                 isValid = false;
             }
-
-            console.log('Form validation result:', isValid);
 
             if (isValid) {
                 var formData = new FormData(this);
@@ -395,7 +433,7 @@
                     }
                 });
             } else {
-                console.warn('Form validation failed - check console for details');
+                // Validation errors are shown inline next to fields.
             }
         });
 
@@ -406,7 +444,6 @@
 
         // Special validation for date inputs to catch all changes
         $('#dob, #movein').on('change input', function() {
-            console.log('Date field changed:', $(this).attr('id'), $(this).val());
             validateField($(this));
         });
 
@@ -432,21 +469,6 @@
             }
         });
 
-        // Direct validation for move-in date field
-        $('#movein').on('change input', function() {
-            var moveInError = $('#movein-error');
-            var value = $(this).val();
-            
-            if (value && isFutureOrPresentDate(value)) {
-                // Valid date - hide error
-                moveInError.removeClass('show').text('');
-                $(this).removeAttr('aria-invalid');
-            } else if (value && !isFutureOrPresentDate(value)) {
-                // Invalid date - show error
-                moveInError.addClass('show').text('Move-in date must be today or in the future');
-                $(this).attr('aria-invalid', 'true');
-            }
-        });
     }
 
     function showError(field, message) {
@@ -470,8 +492,6 @@
     function validateField(field) {
         var fieldId = field.attr('id');
         var errorDiv = $('#' + fieldId + '-error');
-        
-        console.log('validateField called for:', fieldId, 'value:', field.val());
         
         // Always clear error first
         if (errorDiv.length) {
@@ -498,7 +518,6 @@
         } else if (fieldId === 'movein' && field.val()) {
             // Special handling for movein date
             var isValid = isFutureOrPresentDate(field.val());
-            console.log('Move-in date check - value:', field.val(), 'isValid:', isValid);
             if (!isValid) {
                 errorMessage = 'Move-in date must be today or in the future';
             }
@@ -506,13 +525,11 @@
 
         // Show error if there is one
         if (errorMessage) {
-            console.log('Showing error for', fieldId, ':', errorMessage);
             if (errorDiv.length) {
                 errorDiv.text(errorMessage).addClass('show');
             }
             field.attr('aria-invalid', 'true');
         } else {
-            console.log('No error for', fieldId);
             if (errorDiv.length) {
                 errorDiv.removeClass('show').text('');
             }
@@ -560,12 +577,6 @@
         selectedDate.setHours(0, 0, 0, 0);
         
         return selectedDate >= today;
-    }
-
-    function showSuccess() {
-        $('.form-section').hide();
-        $('.thank-you-message').show();
-        $('#progressBar').css('width', '100%');
     }
 
     // PERFORMANCE OPTIMIZATIONS
